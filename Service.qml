@@ -81,9 +81,9 @@ Item {
 
   readonly property string pluginDir: manifest && manifest.__sourceDir ? String(manifest.__sourceDir) : Qt.resolvedUrl(".").toString().replace(/^file:\/\//, "").replace(/\/$/, "")
   readonly property bool enabled: setting("enabled", true) !== false
-  readonly property string preset: Model.normalizePreset(setting("preset", "meeting"))
+  readonly property string preset: Model.normalizePreset(setting("preset", "podcast"))
   readonly property string meetingQuality: Model.normalizeQuality(setting("meetingQuality", "better"))
-  readonly property string podcastQuality: Model.normalizeQuality(setting("podcastQuality", "better"))
+  readonly property string podcastQuality: Model.normalizeQuality(setting("podcastQuality", "good"))
   readonly property string quality: preset === "podcast" ? podcastQuality : meetingQuality
   readonly property string pinnedSource: String(setting("pinnedSource", "") || "")
   readonly property string previousAudioSource: String(setting("previousAudioSource", "") || "")
