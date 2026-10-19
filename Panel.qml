@@ -927,6 +927,7 @@ Panel {
                         Text {
                           width: parent.width
                           text: Model.friendlyDeviceLabel(modelData.description || modelData.name)
+                          textFormat: Text.PlainText
                           color: root.foreground
                           font.family: root.fontFamily
                           font.pixelSize: Style.font.body
@@ -1045,6 +1046,7 @@ Panel {
                 width: parent.width
                 visible: !!service.busyReason
                 text: service.statusText.toUpperCase()
+                textFormat: Text.PlainText
                 color: root.dim
                 font.family: root.fontFamily
                 font.pixelSize: Style.font.bodySmall

@@ -128,6 +128,9 @@ function dedupeCaptureSources(list, preferName) {
 
 function friendlyDeviceLabel(text) {
   var label = String(text || "").trim()
+  if (/\bHeadset(?: Mono)? Microphone$/i.test(label)) return "Microfone do headset"
+  if (/^(?:Digital Microphone|.*Audio Controller Digital Microphone)$/i.test(label))
+    return "Microfone interno"
   label = label.replace(/^sof-soundwire\s+/i, "")
   label = label.replace(/^built-?in audio\s+/i, "")
   label = label.replace(/\s+Analog Stereo$/i, "")
