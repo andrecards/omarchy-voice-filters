@@ -140,11 +140,17 @@ $extra
 EOF
 }
 
-# Light makeup after NS: ~2.5:1 into a −1 dB ceiling. LSP gains are linear.
-# Attack threshold 0.251 ≈ −12 dB; makeup 2.0 ≈ +6 dB.
+# Compressão leve após o filtro, com teto de -1 dB. Ganhos LSP são lineares.
+# A regulagem de Gravação prioriza naturalidade; Reunião comprime um pouco mais.
 dynamics_nodes() {
   [[ $have_lsp -eq 1 ]] || return 0
-  cat <<'EOF'
+  local ratio=1.5
+  local makeup=1.4
+  if [[ $preset == meeting ]]; then
+    ratio=1.8
+    makeup=1.5
+  fi
+  cat <<EOF
                     {
                         type = lv2
                         name = comp
@@ -152,10 +158,10 @@ dynamics_nodes() {
                         control = {
                             "cm" = 0
                             "al" = 0.25119
-                            "cr" = 2.5
-                            "at" = 15.0
-                            "rt" = 120.0
-                            "mk" = 2.0
+                            "cr" = $ratio
+                            "at" = 20.0
+                            "rt" = 180.0
+                            "mk" = $makeup
                         }
                     }
                     {
@@ -348,7 +354,7 @@ EOF
 }
 
 rnnoise_node() {
-  local vad=$1 grace=$2
+  local vad=$1 grace=$2 retro=$3
   cat <<EOF
                     {
                         type = ladspa
@@ -358,7 +364,7 @@ rnnoise_node() {
                         control = {
                             "VAD Threshold (%)" = $vad
                             "VAD Grace Period (ms)" = $grace
-                            "Retroactive VAD Grace (ms)" = 0
+                            "Retroactive VAD Grace (ms)" = $retro
                         }
                     }
 EOF
@@ -379,24 +385,26 @@ dfn_node() {
 EOF
 }
 
-meeting_vad=80.0
+meeting_vad=65.0
 meeting_grace=400
-podcast_vad=85.0
-podcast_grace=200
+meeting_retro=40
+podcast_vad=60.0
+podcast_grace=400
+podcast_retro=60
 podcast_dfn=70
 case $quality in
   good)
-    meeting_vad=70.0
+    meeting_vad=45.0
     meeting_grace=500
-    podcast_vad=75.0
-    podcast_grace=400
+    podcast_vad=40.0
+    podcast_grace=500
     podcast_dfn=50
     ;;
   best)
-    meeting_vad=85.0
+    meeting_vad=80.0
     meeting_grace=250
-    podcast_vad=90.0
-    podcast_grace=150
+    podcast_vad=80.0
+    podcast_grace=250
     podcast_dfn=85
     ;;
 esac
@@ -464,9 +472,9 @@ add_link() {
 
   if [[ $engine == rnnoise ]]; then
     if [[ $preset == podcast ]]; then
-      rnnoise_node $podcast_vad $podcast_grace
+      rnnoise_node $podcast_vad $podcast_grace $podcast_retro
     else
-      rnnoise_node $meeting_vad $meeting_grace
+      rnnoise_node $meeting_vad $meeting_grace $meeting_retro
     fi
     add_link "$prev_out" "denoise:Input"
     prev_out="denoise:Output"
