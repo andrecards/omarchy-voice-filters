@@ -1146,6 +1146,46 @@ Panel {
             width: parent.width
             spacing: Style.space(8)
 
+            Text {
+              text: "Níveis de voz"
+              color: root.foreground
+              font.family: root.fontFamily
+              font.pixelSize: Style.font.subtitle
+              font.bold: true
+            }
+
+            Text {
+              width: parent.width
+              text: "Comece em 0 dB. Aumente somente se a gravação estiver baixa."
+              color: root.dim
+              font.family: root.fontFamily
+              font.pixelSize: Style.font.caption
+              wrapMode: Text.WordWrap
+            }
+
+            GainRow {
+              title: "Entrada"
+              persisted: service.captureGainDb
+              hint: "Ajusta o sinal antes do filtro. Ganho excessivo causa distorção."
+              onMoved: function(v) { root.previewGainDb("capture", v) }
+              onReleased: function(v) { root.setGainDb("capture", v) }
+            }
+
+            GainRow {
+              title: "Saída"
+              persisted: service.outputGainDb
+              hint: "Ajusta o volume entregue aos aplicativos."
+              onMoved: function(v) { root.previewGainDb("output", v) }
+              onReleased: function(v) { root.setGainDb("output", v) }
+            }
+          }
+
+          PanelSeparator { foreground: root.foreground }
+
+          Column {
+            width: parent.width
+            spacing: Style.space(8)
+
             Item {
               width: parent.width
               implicitHeight: Math.max(voiceTitle.implicitHeight, voiceDisabled.implicitHeight)
@@ -1284,46 +1324,6 @@ Panel {
             preset: "podcast"
             quality: service.podcastQuality
             onChosen: function(value) { root.setPodcastQuality(value) }
-          }
-
-          PanelSeparator { foreground: root.foreground }
-
-          Column {
-            width: parent.width
-            spacing: Style.space(8)
-
-            Text {
-              text: "Níveis de voz"
-              color: root.foreground
-              font.family: root.fontFamily
-              font.pixelSize: Style.font.subtitle
-              font.bold: true
-            }
-
-            Text {
-              width: parent.width
-              text: "Comece em 0 dB. Aumente somente se a gravação estiver baixa."
-              color: root.dim
-              font.family: root.fontFamily
-              font.pixelSize: Style.font.caption
-              wrapMode: Text.WordWrap
-            }
-
-            GainRow {
-              title: "Entrada"
-              persisted: service.captureGainDb
-              hint: "Ajusta o sinal antes do filtro. Ganho excessivo causa distorção."
-              onMoved: function(v) { root.previewGainDb("capture", v) }
-              onReleased: function(v) { root.setGainDb("capture", v) }
-            }
-
-            GainRow {
-              title: "Saída"
-              persisted: service.outputGainDb
-              hint: "Ajusta o volume entregue aos aplicativos."
-              onMoved: function(v) { root.previewGainDb("output", v) }
-              onReleased: function(v) { root.setGainDb("output", v) }
-            }
           }
         }
       }
