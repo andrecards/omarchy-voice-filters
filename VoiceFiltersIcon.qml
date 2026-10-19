@@ -20,6 +20,8 @@ Item {
     sourceSize.width: Math.round(root.iconSize * Screen.devicePixelRatio)
     sourceSize.height: Math.round(root.iconSize * Screen.devicePixelRatio)
     fillMode: Image.PreserveAspectFit
+    smooth: true
+    mipmap: true
     visible: false
     layer.enabled: true
   }

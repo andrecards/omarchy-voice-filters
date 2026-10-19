@@ -94,6 +94,10 @@ Item {
   readonly property bool setupNeeded: setup.needed
   readonly property real outputGainDb: Model.outputGainDbForPreset(preset, settings)
   readonly property real captureGainDb: Model.captureGainDbForPreset(preset, settings)
+  property var previewOutputGainDb: null
+  property var previewCaptureGainDb: null
+  readonly property real liveOutputGainDb: previewOutputGainDb === null ? outputGainDb : previewOutputGainDb
+  readonly property real liveCaptureGainDb: previewCaptureGainDb === null ? captureGainDb : previewCaptureGainDb
   readonly property string eqCurve: Model.eqCurveForPreset(preset, settings)
   readonly property var eqTrim: Model.eqTrimForPreset(preset, settings)
   readonly property var eqBands: Model.eqBandGains(eqCurve, eqPreview ? previewEqTrim : eqTrim)
@@ -257,6 +261,17 @@ Item {
     eqPreview = false
   }
 
+  function previewGainDb(kind, value) {
+    var gain = Model.snapGainDb(value)
+    if (kind === "capture") previewCaptureGainDb = gain
+    else if (kind === "output") previewOutputGainDb = gain
+  }
+
+  function clearGainPreview(kind) {
+    if (kind === "capture") previewCaptureGainDb = null
+    else if (kind === "output") previewOutputGainDb = null
+  }
+
   function writeLiveControls() {
     if (!root.active || !enabled) return
     var args = [scriptPath("voicefilters-ctl"), "set"]
@@ -264,6 +279,7 @@ Item {
     if (engine === "rnnoise") {
       args.push("denoise:VAD Threshold (%)", String(qp.vad))
       args.push("denoise:VAD Grace Period (ms)", String(qp.grace))
+      args.push("denoise:Retroactive VAD Grace (ms)", String(qp.retro))
     } else if (engine === "deepfilter") {
       args.push("denoise:Attenuation Limit (dB)", String(qp.dfn))
     }
@@ -274,6 +290,8 @@ Item {
       args.push("eq_pres:Gain", String(bands.pres))
       args.push("eq_air:Gain", String(bands.air))
     }
+    args.push("preamp:Gain 1", String(Model.gainDbToLinear(liveCaptureGainDb)))
+    args.push("outgain:Gain 1", String(Model.gainDbToLinear(liveOutputGainDb)))
     liveCtlProcess.command = args
     if (liveCtlProcess.running) liveCtlProcess.running = false
     liveCtlProcess.running = true
@@ -440,6 +458,8 @@ Item {
   onEqBodyDbChanged: applyLiveControls()
   onEqPresDbChanged: applyLiveControls()
   onEqAirDbChanged: applyLiveControls()
+  onLiveCaptureGainDbChanged: applyLiveControls()
+  onLiveOutputGainDbChanged: applyLiveControls()
   onProbedChanged: if (probed) syncHost()
   onPinnedSourceChanged: refreshSources()
   onNodesChanged: {

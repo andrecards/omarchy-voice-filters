@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "admin.voicefilters",
   "name": "Filtros de Voz Omarchy",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "author": "admin (derivado de Omavoice por GigaSolo)",
   "license": "MIT",
   "homepage": "https://github.com/gigasolo/omavoice",

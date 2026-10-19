@@ -146,6 +146,17 @@ Panel {
     persistSettings({ podcastQuality: Model.normalizeQuality(value) })
   }
 
+  function setGainDb(kind, value) {
+    persistSettings(Model.sharedGainPatch(kind, value))
+    if (service && typeof service.clearGainPreview === "function")
+      service.clearGainPreview(kind)
+  }
+
+  function previewGainDb(kind, value) {
+    if (service && typeof service.previewGainDb === "function")
+      service.previewGainDb(kind, value)
+  }
+
   function formatGainDb(db) {
     var n = Model.snapGainDb(db)
     return (n > 0 ? "+" : "") + n.toFixed(1)
@@ -480,7 +491,7 @@ Panel {
       Item {
         VoiceFiltersIcon {
           anchors.centerIn: parent
-          iconSize: Style.space(12)
+          iconSize: Style.space(14)
           color: root.barIconColor
         }
       }
@@ -1265,6 +1276,46 @@ Panel {
             preset: "podcast"
             quality: service.podcastQuality
             onChosen: function(value) { root.setPodcastQuality(value) }
+          }
+
+          PanelSeparator { foreground: root.foreground }
+
+          Column {
+            width: parent.width
+            spacing: Style.space(8)
+
+            Text {
+              text: "Níveis de voz"
+              color: root.foreground
+              font.family: root.fontFamily
+              font.pixelSize: Style.font.subtitle
+              font.bold: true
+            }
+
+            Text {
+              width: parent.width
+              text: "Comece em 0 dB. Aumente somente se a gravação estiver baixa."
+              color: root.dim
+              font.family: root.fontFamily
+              font.pixelSize: Style.font.caption
+              wrapMode: Text.WordWrap
+            }
+
+            GainRow {
+              title: "Entrada"
+              persisted: service.captureGainDb
+              hint: "Ajusta o sinal antes do filtro. Ganho excessivo causa distorção."
+              onMoved: function(v) { root.previewGainDb("capture", v) }
+              onReleased: function(v) { root.setGainDb("capture", v) }
+            }
+
+            GainRow {
+              title: "Saída"
+              persisted: service.outputGainDb
+              hint: "Ajusta o volume entregue aos aplicativos."
+              onMoved: function(v) { root.previewGainDb("output", v) }
+              onReleased: function(v) { root.setGainDb("output", v) }
+            }
           }
         }
       }
