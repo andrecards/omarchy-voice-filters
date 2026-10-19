@@ -342,7 +342,7 @@ function eqCurveParams(curve) {
 function eqCurveForPreset(preset, values) {
   if (normalizePreset(preset) === "clean") return ""
   var src = values || {}
-  if (normalizePreset(preset) === "podcast") return normalizeEqCurve(src.podcastEq, "clear")
+  if (normalizePreset(preset) === "podcast") return normalizeEqCurve(src.podcastEq, "neutral")
   return normalizeEqCurve(src.meetingEq, "warm")
 }
 
