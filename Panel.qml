@@ -475,9 +475,17 @@ Panel {
     function show(): void { root.open() }
     function hide(): void { root.close() }
     function toggle(): void { root.toggle() }
+    function tune(): void { root.open(); root.showTune(true) }
     function on(): string { root.persistSettings({ enabled: true }); return "ok" }
     function off(): string { root.persistSettings({ enabled: false }); return "ok" }
     function preset(name: string): string { root.choosePreset(name); return "ok" }
+    function gain(kind: string, db: string): string {
+      var value = Number(db)
+      if ((kind !== "capture" && kind !== "output") || !isFinite(value))
+        return "Uso: gain capture|output <dB>"
+      root.setGainDb(kind, value)
+      return "ok"
+    }
     function status(): string { return service.statusText }
   }
 
