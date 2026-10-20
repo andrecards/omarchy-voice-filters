@@ -1,6 +1,6 @@
 var NODE_NAME = "voicefilters"
 var CAPTURE_NAME = "voicefilters.capture"
-var NODE_DESCRIPTION = "Filtros de Voz"
+var NODE_DESCRIPTION = "Voice Filters"
 var PRESETS = ["meeting", "podcast", "clean"]
 var QUALITIES = ["good", "better", "best"]
 var ENGINES = ["auto", "rnnoise", "deepfilter"]
@@ -31,22 +31,22 @@ function qualityFromIndex(index) {
 
 function qualityLabel(value) {
   var quality = normalizeQuality(value)
-  if (quality === "good") return "Suave"
-  if (quality === "best") return "Forte"
-  return "Equilibrado"
+  if (quality === "good") return "Gentle"
+  if (quality === "best") return "Strong"
+  return "Balanced"
 }
 
 function qualityHint(preset, quality) {
   var kind = normalizePreset(preset)
   var level = normalizeQuality(quality)
   if (kind === "podcast") {
-    if (level === "good") return "Redução leve: mantém mais som ambiente."
-    if (level === "best") return "Redução intensa: menos ambiente, mas pode alterar a voz."
-    return "Voz tratada com equilíbrio para gravação."
+    if (level === "good") return "Light reduction: keeps more ambient sound."
+    if (level === "best") return "Strong reduction: less ambient sound, but may change the voice."
+    return "Balanced voice processing for recording."
   }
-  if (level === "good") return "Preserva mais a voz e deixa algum som ambiente."
-  if (level === "best") return "Reduz mais o ruído; pode cortar finais de palavras."
-  return "Redução de eco e ruído para chamadas."
+  if (level === "good") return "Preserves more of the voice and some ambient sound."
+  if (level === "best") return "Reduces more noise; may clip word endings."
+  return "Echo and noise reduction for calls."
 }
 
 function isVoiceFiltersName(name) {
@@ -90,9 +90,9 @@ function sourceKindLabel(name) {
   var kind = sourceKind(name)
   if (kind === "usb") return "USB"
   if (kind === "bluetooth") return "Bluetooth"
-  if (kind === "builtin") return "Interno"
-  if (kind === "voicefilters") return "Filtrado"
-  return "Outro"
+  if (kind === "builtin") return "Built-in"
+  if (kind === "voicefilters") return "Filtered"
+  return "Other"
 }
 
 function bluetoothAddress(name) {
@@ -128,9 +128,9 @@ function dedupeCaptureSources(list, preferName) {
 
 function friendlyDeviceLabel(text) {
   var label = String(text || "").trim()
-  if (/\bHeadset(?: Mono)? Microphone$/i.test(label)) return "Microfone do headset"
+  if (/\bHeadset(?: Mono)? Microphone$/i.test(label)) return "Headset microphone"
   if (/^(?:Digital Microphone|.*Audio Controller Digital Microphone)$/i.test(label))
-    return "Microfone interno"
+    return "Built-in microphone"
   label = label.replace(/^sof-soundwire\s+/i, "")
   label = label.replace(/^built-?in audio\s+/i, "")
   label = label.replace(/\s+Analog Stereo$/i, "")
@@ -140,7 +140,7 @@ function friendlyDeviceLabel(text) {
   label = label.replace(/^alsa_input\./, "")
   label = label.replace(/^usb-/, "")
   label = label.replace(/_/g, " ")
-  return label || "Microfone"
+  return label || "Microphone"
 }
 
 function sourceSignature(list) {
@@ -222,16 +222,16 @@ function restoreCaptureName(pinnedName, previousName, sources) {
 
 function presetLabel(preset) {
   var value = normalizePreset(preset)
-  if (value === "podcast") return "Gravação"
+  if (value === "podcast") return "Recording"
   if (value === "clean") return "Natural"
-  return "Reunião"
+  return "Meeting"
 }
 
 function presetHint(preset) {
   var value = normalizePreset(preset)
-  if (value === "podcast") return "Redução de ruído e compressão moderada para gravação"
-  if (value === "clean") return "Filtro passa-altas; preserva ambiente e música"
-  return "Cancelamento de eco e redução de ruído para chamadas"
+  if (value === "podcast") return "Noise reduction and moderate compression for recording"
+  if (value === "clean") return "High-pass filter; preserves ambience and music"
+  return "Echo cancellation and noise reduction for calls"
 }
 
 function normalizeEngine(value) {
@@ -258,9 +258,9 @@ function resolveEngine(preset, engineSetting, haveRnnoise, haveDeepfilter) {
 
 function engineChoiceHint(value) {
   var want = normalizeEngine(value)
-  if (want === "rnnoise") return "Redução neural de ruído. Não é combinada com DeepFilterNet."
-  if (want === "deepfilter") return "Redução mais intensa. Não é combinada com RNNoise."
-  return "Reunião: RNNoise. Gravação: DeepFilterNet se instalado, senão RNNoise. Natural: sem denoise."
+  if (want === "rnnoise") return "Neural noise reduction. Not combined with DeepFilterNet."
+  if (want === "deepfilter") return "Stronger noise reduction. Not combined with RNNoise."
+  return "Meeting: RNNoise. Recording: DeepFilterNet if installed, otherwise RNNoise. Natural: no denoising."
 }
 
 function engineLabel(engine) {
@@ -268,7 +268,7 @@ function engineLabel(engine) {
   if (want === "deepfilter") return "DeepFilterNet"
   if (want === "rnnoise") return "RNNoise"
   if (want === "clean") return "Natural"
-  return "Automático"
+  return "Automatic"
 }
 
 function hostSwitchReason(prevKey, nextKey, reloading) {
@@ -282,11 +282,12 @@ function hostSwitchReason(prevKey, nextKey, reloading) {
   return "start"
 }
 
-function busyStatusText(reason, preset, engineSetting) {
-  if (reason === "engine") return "Iniciando " + engineLabel(engineSetting) + "…"
-  if (reason === "target") return "Trocando de microfone…"
-  if (reason === "reload") return "Recarregando filtros…"
-  return "Iniciando perfil " + presetLabel(preset) + "…"
+function busyStatusText(reason, preset, engineSetting, tr) {
+  tr = tr || function(value) { return value }
+  if (reason === "engine") return tr("Starting %1…").replace("%1", tr(engineLabel(engineSetting)))
+  if (reason === "target") return tr("Switching microphones…")
+  if (reason === "reload") return tr("Reloading filters…")
+  return tr("Starting profile %1…").replace("%1", tr(presetLabel(preset)))
 }
 
 function clampGainDb(value) {
@@ -408,10 +409,10 @@ function snapEqBandDb(curve, band, value) {
 
 function eqCurveHint(value) {
   var c = normalizeEqCurve(value, "neutral")
-  if (c === "warm") return "Um pouco mais de graves e menos aspereza."
-  if (c === "clear") return "Reduz o som abafado e destaca a fala."
-  if (c === "bright") return "Passa-altas mais elevado e agudos suaves."
-  return "Som neutro, sem colorir a voz."
+  if (c === "warm") return "A little more bass and less harshness."
+  if (c === "clear") return "Reduces muddiness and brings speech forward."
+  if (c === "bright") return "Higher high-pass and gentle treble."
+  return "Neutral sound without coloring the voice."
 }
 
 function snapGainDb(value) {
@@ -490,18 +491,18 @@ function setupGuide(engine, haveRnnoise, haveDeepfilter, preset) {
   function rnnoiseRow() {
     return {
       needed: true,
-      hero: "Instalar RNNoise",
+      hero: "Install RNNoise",
       command: "omarchy pkg add noise-suppression-for-voice",
-      body: "Este motor precisa do plugin LADSPA RNNoise. O perfil Natural funciona sem ele."
+      body: "This engine needs the RNNoise LADSPA plugin. Natural works without it."
     }
   }
 
   function dfnRow() {
     return {
       needed: true,
-      hero: "Instalar DeepFilterNet",
+      hero: "Install DeepFilterNet",
       command: "omarchy pkg aur add libdeep_filter_ladspa-bin",
-      body: "DeepFilterNet não está instalado. Recarregue após instalá-lo."
+      body: "DeepFilterNet is not installed. Reload after installing it."
     }
   }
 
@@ -515,22 +516,23 @@ function setupGuide(engine, haveRnnoise, haveDeepfilter, preset) {
 
 function hostErrorText(kind, raw) {
   var t = String(raw || "")
-  if (kind === "probe") return "Não foi possível verificar os plugins de áudio."
-  if (t.indexOf("session PipeWire did not answer") >= 0) return "PipeWire não respondeu."
-  return "Não foi possível iniciar o microfone."
+  if (kind === "probe") return "Could not check the audio plugins."
+  if (t.indexOf("session PipeWire did not answer") >= 0) return "PipeWire did not respond."
+  return "Could not start the microphone."
 }
 
-function statusText(state) {
+function statusText(state, tr) {
   state = state || {}
-  if (!state.enabled) return "Desligado"
+  tr = tr || function(value) { return value }
+  if (!state.enabled) return tr("Off")
   if (state.setupNeeded && normalizePreset(state.preset) !== "clean") {
-    return String(state.setupHero || "Plugin não instalado")
+    return tr(String(state.setupHero || "Plugin not installed"))
   }
-  if (!state.targetName) return "Nenhum microfone"
-  if (state.busyReason) return busyStatusText(state.busyReason, state.preset, state.engineSetting)
-  if (state.running) return presetLabel(state.preset) + " · " + friendlyDeviceLabel(state.targetLabel || state.targetName)
-  if (state.busy) return busyStatusText("start", state.preset, state.engineSetting)
-  return "Em espera"
+  if (!state.targetName) return tr("No microphone")
+  if (state.busyReason) return busyStatusText(state.busyReason, state.preset, state.engineSetting, tr)
+  if (state.running) return tr("%1 · %2").replace("%1", tr(presetLabel(state.preset))).replace("%2", tr(friendlyDeviceLabel(state.targetLabel || state.targetName)))
+  if (state.busy) return busyStatusText("start", state.preset, state.engineSetting, tr)
+  return tr("Standby")
 }
 
 if (typeof module !== "undefined") {

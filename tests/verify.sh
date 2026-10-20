@@ -24,8 +24,8 @@ assert.equal(meeting.grace, 500);
 assert.equal(meeting.retro, 60);
 assert.equal(model.sharedGainPatch("capture", 3).captureGainDb, 3);
 assert.equal(model.gainDbToLinear(0), 1);
-assert.equal(model.friendlyDeviceLabel("Alder Lake PCH-P High Definition Audio Controller Digital Microphone"), "Microfone interno");
-assert.equal(model.friendlyDeviceLabel("Alder Lake PCH-P High Definition Audio Controller Headset Mono Microphone"), "Microfone do headset");
+assert.equal(model.friendlyDeviceLabel("Alder Lake PCH-P High Definition Audio Controller Digital Microphone"), "Built-in microphone");
+assert.equal(model.friendlyDeviceLabel("Alder Lake PCH-P High Definition Audio Controller Headset Mono Microphone"), "Headset microphone");
 JS
 
 podcast=$("$run" --dump --preset podcast --quality good --engine rnnoise --eq neutral --target "$target" --dir "$plugin_dir")

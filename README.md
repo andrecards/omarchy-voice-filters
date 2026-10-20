@@ -1,56 +1,58 @@
-# Filtros de Voz para Omarchy
+# Omarchy Voice Filters
 
-Plugin de barra e serviço para Omarchy Shell. Ele publica a entrada virtual `voicefilters` no PipeWire e oferece perfis e controles de áudio no painel **Filtros de Voz**. O painel nativo **Áudio** seleciona essa entrada como selecionaria qualquer microfone.
+A virtual PipeWire microphone with noise reduction, voice profiles, live gain controls, and an Omarchy bar panel. The output device is named `voicefilters`, so it can be selected in Superwhisper, meeting apps, recorders, or Omarchy's native Audio panel.
 
-## Instalação local
+![Voice Filters panel](preview.png)
+
+## Install
 
 ```bash
-omarchy plugin add /home/admin/Projects/ferramentas-sistema/omarchy-voice-filters/plugin --enable
+omarchy plugin add https://github.com/andrecards/omarchy-voice-filters.git --enable
 omarchy restart shell
 ```
 
-Dependências: PipeWire, Omarchy Shell e `noise-suppression-for-voice` para RNNoise. `lsp-plugins` fornece compressor leve e limitador. DeepFilterNet é opcional; quando instalado, pode ser selecionado no painel. O plugin detecta motores ausentes.
+The plugin needs Omarchy Shell and PipeWire. RNNoise uses `noise-suppression-for-voice`; the optional compressor and limiter use `lsp-plugins`. DeepFilterNet is optional. The panel reports a missing processing engine and shows the relevant install command. No download runs automatically.
 
-Após atualizar o código do plugin, reinicie o Shell. Uma recarga parcial pode conservar o `Model.js` antigo na memória e reaplicar parâmetros anteriores ao nó PipeWire.
+## Use
 
-## Uso
+Open the Voice Filters bar widget and select a profile:
 
-Abra o widget **Filtros de Voz** na barra. Em **Perfil**, escolha:
+- **Recording** reduces noise without echo cancellation. It is the initial profile and usually suits dictation.
+- **Meeting** adds WebRTC echo cancellation for calls played through speakers.
+- **Natural** applies a high-pass filter and preserves ambient sound and music.
 
-- **Gravação**: denoise RNNoise, sem cancelamento de eco. É o padrão para ditado.
-- **Reunião**: denoise e cancelamento de eco WebRTC para chamadas com alto-falantes.
-- **Natural**: sem denoise neural e sem compressor; preserva o ambiente.
+The tuning page offers engine selection, Gentle/Balanced/Strong processing, input and output gain from -12 to +12 dB, and a voice tone equalizer. Start at 0 dB gain. Strong processing can clip quiet syllables. If the physical microphone clips, lower its hardware input level first.
 
-Na tela de ajustes, escolha o motor e a intensidade **Suave**, **Equilibrado** ou **Forte**. Para uma voz distante ou captada pelo microfone interno, comece em **Gravação / Suave / Neutro**. Em RNNoise, a intensidade muda sobretudo a porta de detecção de fala; o algoritmo de redução de ruído permanece ativo. **Forte** pode cortar sílabas fracas.
+The plugin does not change the system default microphone on a new installation. Enable **Use Voice Filters as default input** in the panel if you want applications to select it automatically. Otherwise select `voicefilters` in each application. The plugin restores the previous physical default when this option is turned off or the plugin is disabled.
 
-Em **Reunião / Equilibrado**, a detecção de fala usa limiar de 40%, margem de 500 ms e recuperação retroativa de 60 ms para preservar o início e o fim das palavras. Se o microfone físico atingir 0 dBFS, reduza o nível de hardware antes de aumentar os ganhos do plugin: o limitador evita picos na saída, mas não restaura detalhes já distorcidos na captação.
-
-Os controles **Entrada** e **Saída** variam de -12 a +12 dB. Eles atuam ao vivo; comece em 0 dB e aumente somente depois de conferir o nível gravado. O ganho de entrada ocorre antes do filtro. O ganho de saída controla o sinal entregue aos aplicativos.
-
-Comandos opcionais:
+Optional CLI controls:
 
 ```bash
-omarchy-shell admin.voicefilters tune
-omarchy-shell admin.voicefilters preset podcast
-omarchy-shell admin.voicefilters gain capture 0
-omarchy-shell admin.voicefilters gain output 0
-omarchy-shell admin.voicefilters off
-omarchy-shell admin.voicefilters on
+omarchy-shell io.github.andrecards.voicefilters status
+omarchy-shell io.github.andrecards.voicefilters tune
+omarchy-shell io.github.andrecards.voicefilters preset podcast
+omarchy-shell io.github.andrecards.voicefilters gain capture 0
+omarchy-shell io.github.andrecards.voicefilters gain output 0
+omarchy-shell io.github.andrecards.voicefilters off
+omarchy-shell io.github.andrecards.voicefilters on
 ```
 
-Se o Superwhisper estiver instalado, escolha `voicefilters` como microfone por `superwhisper audio select voicefilters`. Ao desligar o widget, o serviço restaura o microfone físico anterior como padrão do sistema.
+To use it in Superwhisper: `superwhisper audio select voicefilters`.
 
-## Verificação
+## Language
+
+English is the base language. The plugin follows the language selected in Omarchy Setup > Language without a shell restart. Its `i18n/` catalogs currently provide English and Brazilian Portuguese; other languages fall back to English. English source labels alone are not machine translated by the Shell.
+
+## Update and remove
 
 ```bash
-bash tests/verify.sh
-omarchy plugin validate .
-omarchy-shell admin.voicefilters status
-wpctl status
+omarchy plugin update io.github.andrecards.voicefilters
+omarchy restart shell
+omarchy plugin remove io.github.andrecards.voicefilters --yes
 ```
 
-O teste automatizado confere as opções do DSP e o grafo gerado. A qualidade percebida depende do microfone, da distância e do ambiente: compare uma frase gravada diretamente e via `voicefilters`, nas mesmas condições, antes de elevar ganho ou intensidade.
+A full Shell restart after an update prevents stale QML or JavaScript code from keeping an old audio graph in memory. Before removal, select a physical microphone as the system default if the virtual one is active.
 
-## Origem
+## Attribution and license
 
-Projeto derivado de [Omavoice](https://github.com/gigasolo/omavoice), sob licença MIT. A licença original está em `LICENSE`; o registro de atribuição do projeto local está em `../NOTICE`.
+Based on [Omavoice](https://github.com/gigasolo/omavoice) by GigaSolo LLC. See [NOTICE](NOTICE) and [LICENSE](LICENSE) for the original MIT license and attribution.
