@@ -479,7 +479,7 @@ function qualityParams(preset, quality) {
   }
   if (level === "good") return { vad: 45.0, grace: 500, retro: 40, dfn: 50 }
   if (level === "best") return { vad: 80.0, grace: 250, retro: 40, dfn: 85 }
-  return { vad: 65.0, grace: 400, retro: 40, dfn: 70 }
+  return { vad: 40.0, grace: 500, retro: 60, dfn: 70 }
 }
 
 function setupGuide(engine, haveRnnoise, haveDeepfilter, preset) {

@@ -18,7 +18,10 @@ const gentle = model.qualityParams("podcast", "good");
 assert.equal(gentle.vad, 40);
 assert.equal(gentle.grace, 500);
 assert.equal(gentle.retro, 60);
-assert.equal(model.qualityParams("meeting", "better").vad, 65);
+const meeting = model.qualityParams("meeting", "better");
+assert.equal(meeting.vad, 40);
+assert.equal(meeting.grace, 500);
+assert.equal(meeting.retro, 60);
 assert.equal(model.sharedGainPatch("capture", 3).captureGainDb, 3);
 assert.equal(model.gainDbToLinear(0), 1);
 assert.equal(model.friendlyDeviceLabel("Alder Lake PCH-P High Definition Audio Controller Digital Microphone"), "Microfone interno");
@@ -34,8 +37,9 @@ podcast=$("$run" --dump --preset podcast --quality good --engine rnnoise --eq ne
 [[ $podcast == *'"th" = 0.891'* ]]
 
 meeting=$("$run" --dump --preset meeting --quality better --engine rnnoise --eq neutral --target "$target" --dir "$plugin_dir")
-[[ $meeting == *'"VAD Threshold (%)" = 65.0'* ]]
-[[ $meeting == *'"Retroactive VAD Grace (ms)" = 40'* ]]
+[[ $meeting == *'"VAD Threshold (%)" = 40.0'* ]]
+[[ $meeting == *'"VAD Grace Period (ms)" = 500'* ]]
+[[ $meeting == *'"Retroactive VAD Grace (ms)" = 60'* ]]
 [[ $meeting == *'"cr" = 1.8'* ]]
 
 clean=$("$run" --dump --preset clean --engine clean --target "$target" --dir "$plugin_dir")

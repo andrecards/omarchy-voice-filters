@@ -23,6 +23,8 @@ Abra o widget **Filtros de Voz** na barra. Em **Perfil**, escolha:
 
 Na tela de ajustes, escolha o motor e a intensidade **Suave**, **Equilibrado** ou **Forte**. Para uma voz distante ou captada pelo microfone interno, comece em **Gravação / Suave / Neutro**. Em RNNoise, a intensidade muda sobretudo a porta de detecção de fala; o algoritmo de redução de ruído permanece ativo. **Forte** pode cortar sílabas fracas.
 
+Em **Reunião / Equilibrado**, a detecção de fala usa limiar de 40%, margem de 500 ms e recuperação retroativa de 60 ms para preservar o início e o fim das palavras. Se o microfone físico atingir 0 dBFS, reduza o nível de hardware antes de aumentar os ganhos do plugin: o limitador evita picos na saída, mas não restaura detalhes já distorcidos na captação.
+
 Os controles **Entrada** e **Saída** variam de -12 a +12 dB. Eles atuam ao vivo; comece em 0 dB e aumente somente depois de conferir o nível gravado. O ganho de entrada ocorre antes do filtro. O ganho de saída controla o sinal entregue aos aplicativos.
 
 Comandos opcionais:

@@ -385,9 +385,9 @@ dfn_node() {
 EOF
 }
 
-meeting_vad=65.0
-meeting_grace=400
-meeting_retro=40
+meeting_vad=40.0
+meeting_grace=500
+meeting_retro=60
 podcast_vad=60.0
 podcast_grace=400
 podcast_retro=60
