@@ -4,6 +4,8 @@ A virtual PipeWire microphone with noise reduction, voice profiles, live gain co
 
 ![Voice Filters panel](preview.png)
 
+![Voice Filters settings](docs/settings.png)
+
 ## Install
 
 ```bash
@@ -23,7 +25,7 @@ Open the Voice Filters bar widget and select a profile:
 
 The tuning page offers engine selection, Gentle/Balanced/Strong processing, input and output gain from -12 to +12 dB, and a voice tone equalizer. Start at 0 dB gain. Strong processing can clip quiet syllables. If the physical microphone clips, lower its hardware input level first.
 
-The plugin does not change the system default microphone on a new installation. Enable **Use Voice Filters as default input** in the panel if you want applications to select it automatically. Otherwise select `voicefilters` in each application. The plugin restores the previous physical default when this option is turned off or the plugin is disabled.
+The plugin does not change the system default microphone on a new installation. Enable the default-input switch in the panel if you want applications to select it automatically. Otherwise select `voicefilters` in each application. The plugin restores the previous physical default when this option is turned off or the plugin is disabled.
 
 Optional CLI controls:
 
