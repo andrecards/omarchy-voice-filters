@@ -486,14 +486,13 @@ function qualityParams(preset, quality) {
 function setupGuide(engine, haveRnnoise, haveDeepfilter, preset) {
   var kind = normalizePreset(preset)
   var want = normalizeEngine(engine)
-  var none = { needed: false, hero: "", command: "", body: "" }
+  var none = { needed: false, hero: "", body: "" }
 
   function rnnoiseRow() {
     return {
       needed: true,
       hero: "Install RNNoise",
-      command: "omarchy pkg add noise-suppression-for-voice",
-      body: "This engine needs the RNNoise LADSPA plugin. Natural works without it."
+      body: "This engine needs the noise-suppression-for-voice package. Install it with Omarchy, then reload. Natural works without it."
     }
   }
 
@@ -501,8 +500,7 @@ function setupGuide(engine, haveRnnoise, haveDeepfilter, preset) {
     return {
       needed: true,
       hero: "Install DeepFilterNet",
-      command: "omarchy pkg aur add libdeep_filter_ladspa-bin",
-      body: "DeepFilterNet is not installed. Reload after installing it."
+      body: "This engine needs the libdeep_filter_ladspa-bin package. Install it with Omarchy, then reload."
     }
   }
 

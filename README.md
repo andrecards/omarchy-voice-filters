@@ -13,7 +13,9 @@ omarchy plugin add https://github.com/andrecards/omarchy-voice-filters.git --ena
 omarchy restart shell
 ```
 
-The plugin needs Omarchy Shell and PipeWire. RNNoise uses `noise-suppression-for-voice`; the optional compressor and limiter use `lsp-plugins`. DeepFilterNet is optional. The panel reports a missing processing engine and shows the relevant install command. No download runs automatically.
+The plugin needs Omarchy Shell and PipeWire. RNNoise uses `noise-suppression-for-voice`; the optional compressor and limiter use `lsp-plugins`. DeepFilterNet is optional. The panel identifies a missing processing engine and its package. It never installs packages itself.
+
+Install `noise-suppression-for-voice` and, for compression and limiting, `lsp-plugins` through Omarchy's package menu. DeepFilterNet requires the optional `libdeep_filter_ladspa-bin` package from the AUR.
 
 ## Use
 

@@ -355,12 +355,6 @@ Panel {
     }
   }
 
-  function launchSetup() {
-    if (!bar || !setup.command) return
-    bar.run("omarchy-launch-floating-terminal-with-presentation " + Util.shellQuote(setup.command))
-    close()
-  }
-
   function ensureCursor() {
     if (focusSection === "presets") {
       for (var i = 0; i < presets.length; i++) {
@@ -388,7 +382,6 @@ Panel {
     ensureCursor()
     if (dy === 0) return
     var sections = ["header", "presets", "sources"]
-    if (setup.needed) sections.push("setup")
     var idx = sections.indexOf(focusSection)
     if (idx < 0) idx = 0
     if (focusSection === "presets" && dx !== 0) {
@@ -413,7 +406,6 @@ Panel {
     if (focusSection === "header") toggleEnabled()
     else if (focusSection === "presets") choosePreset(presets[presetIndex].value)
     else if (focusSection === "sources" && displaySources[sourceIndex]) chooseSource(displaySources[sourceIndex].name)
-    else if (focusSection === "setup") launchSetup()
   }
 
   implicitWidth: button.implicitWidth
@@ -675,33 +667,6 @@ Panel {
               wrapMode: Text.WordWrap
             }
 
-            CursorSurface {
-              width: parent.width
-              implicitHeight: setupRow.implicitHeight + Style.spacing.rowPaddingX
-              hasCursor: root.cursorActive && root.focusSection === "setup"
-              foreground: root.foreground
-              MouseArea {
-                anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
-                onEntered: { root.cursorActive = true; root.focusSection = "setup" }
-                onClicked: root.launchSetup()
-              }
-              RowLayout {
-                id: setupRow
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.verticalCenter: parent.verticalCenter
-                Text {
-                  text: root.setup.command
-                  color: root.foreground
-                  font.family: root.fontFamily
-                  font.pixelSize: Style.font.caption
-                  Layout.fillWidth: true
-                  wrapMode: Text.WordWrap
-                }
-              }
-            }
           }
 
           PanelSeparator { foreground: root.foreground }
