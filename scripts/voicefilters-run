@@ -215,7 +215,7 @@ if [[ $use_aec -eq 1 ]]; then
             }
             source.props = {
                 node.name = "voicefilters.aec"
-                node.description = "Filtros de Voz: cancelamento de eco"
+                node.description = "Voice Filters: echo cancellation"
                 media.class = Stream/Output/Audio/Internal
                 node.virtual = true
                 node.dont-fallback = true
@@ -254,8 +254,8 @@ graph_head() {
   cat <<EOF
     { name = libpipewire-module-filter-chain
         args = {
-            node.description = "Filtros de Voz"
-            media.name = "Filtros de Voz"
+            node.description = "Voice Filters"
+            media.name = "Voice Filters"
             node.latency = 256/48000
             audio.rate = 48000
             audio.position = [ MONO ]
@@ -284,7 +284,7 @@ $capture_pin
             }
             playback.props = {
                 node.name = "voicefilters"
-                node.description = "Filtros de Voz"
+                node.description = "Voice Filters"
                 media.class = Audio/Source
                 node.virtual = true
                 media.role = Communication

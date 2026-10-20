@@ -5,14 +5,16 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Services.Pipewire
 import qs.Commons
+import qs.Commons as Commons
 import qs.Ui
 import "Model.js" as Model
 
 Panel {
   id: root
-  moduleName: "admin.voicefilters"
-  ipcTarget: "admin.voicefilters"
+  moduleName: "io.github.andrecards.voicefilters"
+  ipcTarget: "io.github.andrecards.voicefilters"
   manageIpc: false
+  Commons.Translations { id: strings; directory: Qt.resolvedUrl("i18n") }
 
   property string focusSection: "header"
   property int sourceIndex: 0
@@ -44,9 +46,9 @@ Panel {
   Component.onCompleted: pushSettings()
 
   readonly property var presets: [
-    { value: "meeting", label: "Reunião", hint: "Zoom, Meet, Teams" },
-    { value: "podcast", label: "Gravação", hint: "OBS, gravações e entrevistas" },
-    { value: "clean", label: "Natural", hint: "Som ambiente preservado" }
+    { value: "meeting", label: strings.t("Meeting"), hint: "Zoom, Meet, Teams" },
+    { value: "podcast", label: strings.t("Recording"), hint: strings.t("OBS, recordings and interviews") },
+    { value: "clean", label: "Natural", hint: strings.t("Ambient sound preserved") }
   ]
   readonly property var captureSources: {
     var list = []
@@ -66,21 +68,21 @@ Panel {
   readonly property color iconColor: service.enabled && service.running && !service.busyReason ? foreground : dim
   readonly property color barIconColor: service.enabled && service.running && !service.busyReason ? barForeground : Qt.darker(barForeground, 1.55)
   readonly property bool headerHasCursor: cursorActive && focusSection === "header"
-  readonly property string toggleHint: service.enabled ? "Desativar filtros de voz" : "Ativar filtros de voz"
+  readonly property string toggleHint: service.enabled ? strings.t("Turn voice filters off") : strings.t("Turn voice filters on")
   readonly property string barTooltip: {
-    if (!service.enabled) return "Filtros de voz · desligados"
-    if (service.lastError !== "") return "Filtros de voz · " + service.lastError
-    if (!service.running) return "Filtros de voz · " + service.statusText
-    return "Filtros de voz · " + Model.presetLabel(service.preset)
+    if (!service.enabled) return strings.t("Voice Filters · off")
+    if (service.lastError !== "") return strings.t("Voice Filters · %1").replace("%1", strings.t(service.lastError))
+    if (!service.running) return strings.t("Voice Filters · %1").replace("%1", service.statusText)
+    return strings.t("Voice Filters · %1").replace("%1", strings.t(Model.presetLabel(service.preset)))
   }
   readonly property var activePhrases: [
-    "Reduzindo o ruído",
-    "Preservando sua voz",
-    "Limpando o microfone",
-    "Reduzindo o eco"
+    strings.t("Reducing noise"),
+    strings.t("Preserving your voice"),
+    strings.t("Cleaning up the microphone"),
+    strings.t("Reducing echo")
   ]
   readonly property string heroPhraseText: {
-    if (service.lastError !== "") return "Falha ao iniciar"
+    if (service.lastError !== "") return strings.t("Could not start")
     if (service.busyReason) return service.statusText
     if (service.running) return activePhrases[phraseIndex % activePhrases.length]
     return service.statusText
@@ -224,7 +226,7 @@ Panel {
 
     Text {
       width: parent.width
-      text: Model.qualityHint(preset, quality)
+      text: strings.t(Model.qualityHint(preset, quality))
       color: root.dim
       font.family: root.fontFamily
       font.pixelSize: Style.font.caption
@@ -247,7 +249,7 @@ Panel {
     Row {
       width: parent.width
       Repeater {
-        model: ["Suave", "Equilibrado", "Forte"]
+        model: [strings.t("Gentle"), strings.t("Balanced"), strings.t("Strong")]
         Text {
           required property string modelData
           required property int index
@@ -600,7 +602,7 @@ Panel {
               spacing: Style.space(3)
 
               Text {
-                text: "Filtros de voz"
+                text: strings.t("Voice Filters")
                 color: root.foreground
                 font.family: root.fontFamily
                 font.pixelSize: Style.font.title
@@ -625,7 +627,7 @@ Panel {
               anchors.rightMargin: Style.space(4)
               anchors.verticalCenter: parent.verticalCenter
               iconText: service.busyReason === "reload" || service.reloading ? "󰑓" : "󰑐"
-              tooltipText: "Recarregar processamento"
+              tooltipText: strings.t("Reload audio processing")
               foreground: root.foreground
               fontFamily: root.fontFamily
               enabled: service.busyReason !== "reload" && !service.reloading
@@ -652,7 +654,7 @@ Panel {
           Text {
             visible: service.lastError !== ""
             width: parent.width
-            text: service.lastError
+            text: strings.t(service.lastError)
             color: root.urgent
             font.family: root.fontFamily
             font.pixelSize: Style.font.bodySmall
@@ -666,7 +668,7 @@ Panel {
 
             Text {
               width: parent.width
-              text: root.setup.body
+              text: strings.t(root.setup.body)
               color: root.dim
               font.family: root.fontFamily
               font.pixelSize: Style.font.bodySmall
@@ -718,7 +720,7 @@ Panel {
                 anchors.right: presetTuneButton.left
                 anchors.rightMargin: Style.space(8)
                 anchors.verticalCenter: parent.verticalCenter
-                text: "PERFIL"
+                text: strings.t("PROFILE")
                 foreground: root.foreground
                 fontFamily: root.fontFamily
               }
@@ -728,7 +730,7 @@ Panel {
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
                 iconText: "󰒓"
-                tooltipText: "Ajustar Reunião e Gravação"
+                tooltipText: strings.t("Adjust Meeting and Recording")
                 foreground: root.foreground
                 fontFamily: root.fontFamily
                 onClicked: root.showTune(true)
@@ -790,7 +792,7 @@ Panel {
 
             Text {
               width: parent.width
-              text: Model.presetHint(service.preset)
+              text: strings.t(Model.presetHint(service.preset))
               color: root.dim
               font.family: root.fontFamily
               font.pixelSize: Style.font.caption
@@ -812,7 +814,7 @@ Panel {
                 id: micHeader
                 anchors.left: parent.left
                 anchors.verticalCenter: parent.verticalCenter
-                text: "MICROFONE"
+                text: strings.t("MICROPHONE")
                 foreground: root.foreground
                 fontFamily: root.fontFamily
               }
@@ -825,7 +827,7 @@ Panel {
 
                 PanelSectionHeader {
                   id: micAutoLabel
-                  text: "AUTOMÁTICO"
+                  text: strings.t("AUTOMATIC")
                   foreground: root.foreground
                   fontFamily: root.fontFamily
                   anchors.verticalCenter: parent.verticalCenter
@@ -843,8 +845,8 @@ Panel {
                   PanelToolTip {
                     visible: defaultMicSwitch.containsMouse
                     text: service.setDefaultSource
-                      ? "Os aplicativos usam Filtros de Voz automaticamente"
-                      : "Escolha Filtros de Voz em cada aplicativo"
+                      ? strings.t("Apps use Voice Filters automatically")
+                      : strings.t("Select Voice Filters in each app")
                     fontFamily: root.fontFamily
                   }
                 }
@@ -854,7 +856,7 @@ Panel {
             Text {
               visible: Model.sourceKind(service.targetName) === "bluetooth"
               width: parent.width
-              text: "Microfones de headset têm faixa estreita. Um microfone USB tende a soar melhor."
+              text: strings.t("Headset microphones have limited range. A USB microphone usually sounds better.")
               color: root.dim
               font.family: root.fontFamily
               font.pixelSize: Style.font.caption
@@ -864,7 +866,7 @@ Panel {
             Text {
               visible: displaySources.length === 0
               width: parent.width
-              text: "Nenhuma entrada de áudio encontrada. Conecte ou habilite um microfone."
+              text: strings.t("No audio input found. Connect or enable a microphone.")
               color: root.dim
               font.family: root.fontFamily
               font.pixelSize: Style.font.body
@@ -926,7 +928,7 @@ Panel {
                         spacing: 1
                         Text {
                           width: parent.width
-                          text: Model.friendlyDeviceLabel(modelData.description || modelData.name)
+                          text: strings.t(Model.friendlyDeviceLabel(modelData.description || modelData.name))
                           textFormat: Text.PlainText
                           color: root.foreground
                           font.family: root.fontFamily
@@ -936,7 +938,7 @@ Panel {
                         }
                         Text {
                           width: parent.width
-                          text: Model.sourceKindLabel(modelData.name)
+                          text: strings.t(Model.sourceKindLabel(modelData.name))
                           color: root.dim
                           font.family: root.fontFamily
                           font.pixelSize: Style.font.caption
@@ -1022,7 +1024,7 @@ Panel {
               anchors.left: parent.left
               anchors.verticalCenter: parent.verticalCenter
               iconText: "󰁍"
-              tooltipText: "Voltar"
+              tooltipText: strings.t("Back")
               foreground: root.foreground
               fontFamily: root.fontFamily
               onClicked: root.showTune(false)
@@ -1036,7 +1038,7 @@ Panel {
               anchors.verticalCenter: parent.verticalCenter
               spacing: Style.space(3)
               Text {
-                text: "PERFIL"
+                text: strings.t("PROFILE")
                 color: root.foreground
                 font.family: root.fontFamily
                 font.pixelSize: Style.font.title
@@ -1062,7 +1064,7 @@ Panel {
             spacing: Style.space(8)
 
             Text {
-              text: "Motor de redução de ruído"
+              text: strings.t("Noise reduction engine")
               color: root.foreground
               font.family: root.fontFamily
               font.pixelSize: Style.font.subtitle
@@ -1080,7 +1082,7 @@ Panel {
 
               Repeater {
                 model: [
-                  { value: "auto", label: "Automático" },
+                  { value: "auto", label: strings.t("Automatic") },
                   { value: "rnnoise", label: "RNNoise" },
                   { value: "deepfilter", label: "DeepFilterNet" }
                 ]
@@ -1108,7 +1110,7 @@ Panel {
                   }
                   PanelToolTip {
                     visible: engineHit.containsMouse
-                    text: Model.engineChoiceHint(modelData.value)
+                    text: strings.t(Model.engineChoiceHint(modelData.value))
                     fontFamily: root.fontFamily
                   }
                   Rectangle {
@@ -1149,7 +1151,7 @@ Panel {
             spacing: Style.space(8)
 
             Text {
-              text: "Níveis de voz"
+              text: strings.t("Voice levels")
               color: root.foreground
               font.family: root.fontFamily
               font.pixelSize: Style.font.subtitle
@@ -1158,7 +1160,7 @@ Panel {
 
             Text {
               width: parent.width
-              text: "Comece em 0 dB. Aumente somente se a gravação estiver baixa."
+              text: strings.t("Start at 0 dB. Increase only if the recording is quiet.")
               color: root.dim
               font.family: root.fontFamily
               font.pixelSize: Style.font.caption
@@ -1166,17 +1168,17 @@ Panel {
             }
 
             GainRow {
-              title: "Entrada"
+              title: strings.t("Input")
               persisted: service.captureGainDb
-              hint: "Ajusta o sinal antes do filtro. Ganho excessivo causa distorção."
+              hint: strings.t("Adjusts the signal before filtering. Too much gain causes distortion.")
               onMoved: function(v) { root.previewGainDb("capture", v) }
               onReleased: function(v) { root.setGainDb("capture", v) }
             }
 
             GainRow {
-              title: "Saída"
+              title: strings.t("Output")
               persisted: service.outputGainDb
-              hint: "Ajusta o volume entregue aos aplicativos."
+              hint: strings.t("Adjusts the level sent to apps.")
               onMoved: function(v) { root.previewGainDb("output", v) }
               onReleased: function(v) { root.setGainDb("output", v) }
             }
@@ -1196,7 +1198,7 @@ Panel {
                 id: voiceTitle
                 anchors.left: parent.left
                 anchors.verticalCenter: parent.verticalCenter
-                text: "Timbre da voz"
+                text: strings.t("Voice tone")
                 color: root.foreground
                 font.family: root.fontFamily
                 font.pixelSize: Style.font.subtitle
@@ -1208,7 +1210,7 @@ Panel {
                 visible: service.preset === "clean"
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
-                text: "DESATIVADO"
+                text: strings.t("OFF")
                 foreground: root.foreground
                 fontFamily: root.fontFamily
               }
@@ -1234,10 +1236,10 @@ Panel {
 
                 Repeater {
                   model: [
-                    { value: "neutral", label: "Neutro" },
-                    { value: "warm", label: "Aveludado" },
-                    { value: "clear", label: "Claro" },
-                    { value: "bright", label: "Brilhante" }
+                    { value: "neutral", label: strings.t("Neutral") },
+                    { value: "warm", label: strings.t("Warm") },
+                    { value: "clear", label: strings.t("Clear") },
+                    { value: "bright", label: strings.t("Bright") }
                   ]
                   CursorSurface {
                     required property var modelData
@@ -1261,7 +1263,7 @@ Panel {
                     }
                     PanelToolTip {
                       visible: eqHit.containsMouse
-                      text: Model.eqCurveHint(modelData.value)
+                      text: strings.t(Model.eqCurveHint(modelData.value))
                       fontFamily: root.fontFamily
                     }
                     Rectangle {
@@ -1286,28 +1288,28 @@ Panel {
               }
 
               VoiceRow {
-                title: "Corpo"
+                title: strings.t("Body")
                 band: "body"
                 persisted: service.eqBodyDb
-                hint: "Curva de timbre somada ao ajuste manual."
+                hint: strings.t("Tone curve plus manual adjustment.")
                 onMoved: function(v) { root.previewEqBand("body", v) }
                 onReleased: function(v) { root.setEqTrimDb("body", v) }
               }
 
               VoiceRow {
-                title: "Presença"
+                title: strings.t("Presence")
                 band: "pres"
                 persisted: service.eqPresDb
-                hint: "Curva de timbre somada ao ajuste manual."
+                hint: strings.t("Tone curve plus manual adjustment.")
                 onMoved: function(v) { root.previewEqBand("pres", v) }
                 onReleased: function(v) { root.setEqTrimDb("pres", v) }
               }
 
               VoiceRow {
-                title: "Brilho"
+                title: strings.t("Air")
                 band: "air"
                 persisted: service.eqAirDb
-                hint: "Curva de timbre somada ao ajuste manual."
+                hint: strings.t("Tone curve plus manual adjustment.")
                 onMoved: function(v) { root.previewEqBand("air", v) }
                 onReleased: function(v) { root.setEqTrimDb("air", v) }
               }
@@ -1315,14 +1317,14 @@ Panel {
           }
 
           QualitySlider {
-            title: "Reunião"
+            title: strings.t("Meeting")
             preset: "meeting"
             quality: service.meetingQuality
             onChosen: function(value) { root.setMeetingQuality(value) }
           }
 
           QualitySlider {
-            title: "Gravação"
+            title: strings.t("Recording")
             preset: "podcast"
             quality: service.podcastQuality
             onChosen: function(value) { root.setPodcastQuality(value) }

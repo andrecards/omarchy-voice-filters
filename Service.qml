@@ -2,10 +2,12 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import Quickshell.Services.Pipewire
+import qs.Commons as Commons
 import "Model.js" as Model
 
 Item {
   id: root
+  Commons.Translations { id: strings; directory: Qt.resolvedUrl("i18n") }
 
   property var shell: null
   property var settings: ({})
@@ -87,7 +89,7 @@ Item {
   readonly property string quality: preset === "podcast" ? podcastQuality : meetingQuality
   readonly property string pinnedSource: String(setting("pinnedSource", "") || "")
   readonly property string previousAudioSource: String(setting("previousAudioSource", "") || "")
-  readonly property bool setDefaultSource: setting("setDefaultSource", true) !== false
+  readonly property bool setDefaultSource: setting("setDefaultSource", false) === true
   readonly property string engineSetting: Model.normalizeEngine(setting("engine", "auto"))
   readonly property string engine: Model.resolveEngine(preset, engineSetting, haveRnnoise, haveDeepfilter)
   readonly property var setup: Model.setupGuide(engineSetting, haveRnnoise, haveDeepfilter, preset)
@@ -120,7 +122,7 @@ Item {
     targetName: targetName,
     targetLabel: targetLabel,
     lastError: lastError
-  })
+  }, function(value) { return strings.t(value) })
 
   readonly property var defaultSource: Pipewire.defaultAudioSource
   readonly property string defaultSourceName: defaultSource && defaultSource.name ? String(defaultSource.name) : ""
@@ -330,11 +332,11 @@ Item {
       settings = next
       return
     }
-    var entry = { id: "admin.voicefilters" }
+    var entry = { id: "io.github.andrecards.voicefilters" }
     for (var k in settings) if (k !== "id") entry[k] = settings[k]
     for (var n in values) entry[n] = values[n]
     settings = entry
-    shell.updateEntryInline("admin.voicefilters", entry)
+    shell.updateEntryInline("io.github.andrecards.voicefilters", entry)
   }
 
   // Filter-chain sources are node.passive, so After peaks stay at 0 unless
@@ -589,14 +591,6 @@ Item {
 
   Process {
     id: hostProcess
-    stdout: StdioCollector {}
-    stderr: StdioCollector {
-      onStreamFinished: {
-        var text = String(this.text || "").trim()
-        if (text && !hostProcess.running && root.hostAttempts >= 8)
-          lastError = Model.hostErrorText("host", text)
-      }
-    }
     onRunningChanged: {
       if (running) return
       root.promoted = false

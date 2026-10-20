@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
-  "id": "admin.voicefilters",
-  "name": "Filtros de Voz Omarchy",
-  "version": "0.2.0",
-  "author": "admin (derivado de Omavoice por GigaSolo)",
+  "id": "io.github.andrecards.voicefilters",
+  "name": "Omarchy Voice Filters",
+  "version": "1.0.0",
+  "author": "Andre Cardoso",
   "license": "MIT",
-  "homepage": "https://github.com/gigasolo/omavoice",
-  "description": "Microfone virtual com isolamento de ruído, perfis de voz e controles de ganho em dB. Derivado do Omavoice, de licença MIT.",
+  "homepage": "https://github.com/andrecards/omarchy-voice-filters",
+  "description": "Virtual microphone with noise reduction, voice profiles, and gain controls. Based on MIT-licensed Omavoice.",
   "kinds": [
     "service",
     "bar-widget"
@@ -16,8 +16,8 @@
     "barWidget": "Panel.qml"
   },
   "barWidget": {
-    "displayName": "Filtros de Voz",
-    "description": "Microfone virtual com redução de ruído e controles de voz.",
+    "displayName": "Voice Filters",
+    "description": "Virtual microphone with voice isolation and audio controls.",
     "category": "Audio",
     "aliases": [
       "voicefilters",
@@ -32,7 +32,7 @@
       "preset": "podcast",
       "pinnedSource": "",
       "previousAudioSource": "",
-      "setDefaultSource": true,
+      "setDefaultSource": false,
       "engine": "auto",
       "meetingQuality": "better",
       "podcastQuality": "good",
@@ -51,13 +51,13 @@
       {
         "key": "enabled",
         "type": "boolean",
-        "label": "Filtros de voz ativos",
+        "label": "Voice filters enabled",
         "defaultValue": true
       },
       {
         "key": "preset",
         "type": "enum",
-        "label": "Perfil",
+        "label": "Profile",
         "options": [
           "meeting",
           "podcast",
@@ -68,7 +68,7 @@
       {
         "key": "engine",
         "type": "enum",
-        "label": "Motor de redução de ruído",
+        "label": "Noise reduction engine",
         "options": [
           "auto",
           "rnnoise",
@@ -79,27 +79,27 @@
       {
         "key": "pinnedSource",
         "type": "string",
-        "label": "Nome do microfone fixado",
-        "description": "Vazio ativa o modo automático: prioriza USB; caso contrário, usa o microfone padrão.",
+        "label": "Pinned microphone name",
+        "description": "Leave empty for automatic selection: USB first, then the default microphone.",
         "defaultValue": ""
       },
       {
         "key": "previousAudioSource",
         "type": "string",
-        "label": "Último microfone físico usado",
-        "description": "Usado pelo modo automático quando a fonte padrão já é o microfone virtual.",
+        "label": "Last physical microphone used",
+        "description": "Used in automatic mode when the virtual microphone is already the system default.",
         "defaultValue": ""
       },
       {
         "key": "setDefaultSource",
         "type": "boolean",
-        "label": "Definir o microfone filtrado como entrada padrão",
-        "defaultValue": true
+        "label": "Set filtered microphone as the default input",
+        "defaultValue": false
       },
       {
         "key": "meetingQuality",
         "type": "enum",
-        "label": "Reunião: suave, equilibrado ou forte",
+        "label": "Meeting strength: gentle, balanced, or strong",
         "options": [
           "good",
           "better",
@@ -110,7 +110,7 @@
       {
         "key": "podcastQuality",
         "type": "enum",
-        "label": "Gravação: suave, equilibrado ou forte",
+        "label": "Recording strength: gentle, balanced, or strong",
         "options": [
           "good",
           "better",
@@ -121,7 +121,7 @@
       {
         "key": "meetingEq",
         "type": "enum",
-        "label": "Timbre da voz em reunião",
+        "label": "Meeting voice tone",
         "options": [
           "neutral",
           "warm",
@@ -133,7 +133,7 @@
       {
         "key": "podcastEq",
         "type": "enum",
-        "label": "Timbre da voz em gravação",
+        "label": "Recording voice tone",
         "options": [
           "neutral",
           "warm",
@@ -145,7 +145,7 @@
       {
         "key": "meetingEqBodyDb",
         "type": "number",
-        "label": "Corpo em reunião (dB)",
+        "label": "Meeting body (dB)",
         "min": -6,
         "max": 6,
         "step": 0.5,
@@ -154,7 +154,7 @@
       {
         "key": "meetingEqPresenceDb",
         "type": "number",
-        "label": "Presença em reunião (dB)",
+        "label": "Meeting presence (dB)",
         "min": -6,
         "max": 6,
         "step": 0.5,
@@ -163,7 +163,7 @@
       {
         "key": "meetingEqAirDb",
         "type": "number",
-        "label": "Brilho em reunião (dB)",
+        "label": "Meeting air (dB)",
         "min": -6,
         "max": 6,
         "step": 0.5,
@@ -172,7 +172,7 @@
       {
         "key": "podcastEqBodyDb",
         "type": "number",
-        "label": "Corpo em gravação (dB)",
+        "label": "Recording body (dB)",
         "min": -6,
         "max": 6,
         "step": 0.5,
@@ -181,7 +181,7 @@
       {
         "key": "podcastEqPresenceDb",
         "type": "number",
-        "label": "Presença em gravação (dB)",
+        "label": "Recording presence (dB)",
         "min": -6,
         "max": 6,
         "step": 0.5,
@@ -190,7 +190,7 @@
       {
         "key": "podcastEqAirDb",
         "type": "number",
-        "label": "Brilho em gravação (dB)",
+        "label": "Recording air (dB)",
         "min": -6,
         "max": 6,
         "step": 0.5,
@@ -199,7 +199,7 @@
       {
         "key": "outputGainDb",
         "type": "number",
-        "label": "Ganho de saída (dB)",
+        "label": "Output gain (dB)",
         "min": -12,
         "max": 12,
         "step": 0.5,
@@ -208,12 +208,13 @@
       {
         "key": "captureGainDb",
         "type": "number",
-        "label": "Ganho de entrada (dB)",
+        "label": "Input gain (dB)",
         "min": -12,
         "max": 12,
         "step": 0.5,
         "defaultValue": 0
       }
     ]
-  }
+  },
+  "repository": "https://github.com/andrecards/omarchy-voice-filters"
 }
