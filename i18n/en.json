@@ -81,5 +81,13 @@
   "Voice Filters · off": "Voice Filters · off",
   "Voice levels": "Voice levels",
   "Voice tone": "Voice tone",
-  "Warm": "Warm"
+  "Warm": "Warm",
+  "Dictation": "Dictation",
+  "Preserves quiet syllables": "Preserves quiet syllables",
+  "Preserves quiet syllables; no noise gate or neural suppression": "Preserves quiet syllables; no noise gate or neural suppression",
+  "Hear my voice": "Hear my voice",
+  "Stop voice test": "Stop voice test",
+  "Voice test unavailable during dictation.": "Voice test unavailable during dictation.",
+  "Voice test stopped. Check the audio output and try again.": "Voice test stopped. Check the audio output and try again.",
+  "Use headphones. Stops when you close this panel, start dictation or after 60 seconds. Shortcut: T.": "Use headphones. Stops when you close this panel, start dictation or after 60 seconds. Shortcut: T."
 }

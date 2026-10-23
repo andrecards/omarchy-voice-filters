@@ -60,3 +60,17 @@ A full Shell restart after an update prevents stale QML or JavaScript code from 
 ## Attribution and license
 
 Based on [Omavoice](https://github.com/gigasolo/omavoice) by GigaSolo LLC. See [NOTICE](NOTICE) and [LICENSE](LICENSE) for the original MIT license and attribution.
+
+## Perfil Ditado
+
+O perfil **Ditado** aplica somente passa-altas de 60 Hz e os ganhos de entrada e saída. Ele ignora o motor de redução de ruído, a intensidade e a equalização selecionados nos outros perfis. Não usa gate, supressão neural, compressor ou cancelamento de eco; assim evita que esses processadores removam sílabas baixas. O ruído ambiente continua audível.
+
+Selecione **Ditado** no painel ou execute `omarchy-shell io.github.andrecards.voicefilters preset dictation`. Comece com os dois ganhos em 0 dB. No Superwhisper, selecione `voicefilters` para usar esse áudio; selecionar o microfone físico ignora o plugin. O filtro não corrige palavras nem traduções: isso depende do reconhecedor e do pós-processamento. Compare uma mesma gravação antes e depois para avaliar o reconhecimento.
+
+Validação do modelo e do grafo DSP: `bash tests/verify.sh`.
+
+## Teste de voz
+
+O botão **Ouvir minha voz** (atalho **T** com o painel aberto) reproduz o microfone filtrado na saída atual. Use fones para evitar retorno acústico. **Parar teste de voz**, fechar o painel, desligar o filtro, trocar o dispositivo ou iniciar uma captura `superwhisper-capture` encerra o retorno. Há também limite de 60 segundos.
+
+O teste usa um único `pw-loopback`, criado somente durante a escuta, sem arquivos de áudio, mudanças no microfone padrão ou consultas periódicas. A captura do Superwhisper é observada por eventos do PipeWire. O retorno não é conectado à entrada de transcrição.

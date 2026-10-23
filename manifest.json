@@ -59,6 +59,7 @@
         "type": "enum",
         "label": "Profile",
         "options": [
+          "dictation",
           "meeting",
           "podcast",
           "clean"

@@ -25,6 +25,48 @@ Panel {
   property int phraseIndex: 0
   property bool tuneOpen: false
   property bool pendingTuneOpen: false
+  property bool monitorWanted: false
+  property string monitorError: ""
+  readonly property bool monitoring: monitorProcess.running
+  readonly property string monitorSink: Pipewire.defaultAudioSink ? String(Pipewire.defaultAudioSink.name || "") : ""
+  readonly property var monitorStreams: Pipewire.nodes ? Pipewire.nodes.values.filter(function(n) { return n.isStream }) : []
+  PwObjectTracker { objects: root.opened ? root.monitorStreams : [] }
+  readonly property bool dictationCapturing: monitorStreams.some(function(n) {
+    return String(n.name || "") === "superwhisper-capture"
+  })
+  readonly property bool monitorAvailable: opened && service.enabled && service.running
+    && !dictationCapturing && Model.monitorCommand(monitorSink).length > 0
+  onMonitorAvailableChanged: if (!monitorAvailable) stopMonitor()
+  onMonitorSinkChanged: stopMonitor()
+
+  function stopMonitor() {
+    monitorWanted = false
+    if (monitorTimeout) monitorTimeout.stop()
+    if (monitorProcess) monitorProcess.running = false
+  }
+
+  function toggleMonitor() {
+    if (monitoring || monitorWanted) { stopMonitor(); return }
+    if (!monitorAvailable) return
+    monitorError = ""
+    monitorProcess.command = Model.monitorCommand(monitorSink)
+    monitorWanted = true
+    monitorProcess.running = true
+  }
+
+  Process {
+    id: monitorProcess
+    onStarted: {
+      if (!root.monitorWanted || !root.monitorAvailable) { root.stopMonitor(); return }
+      monitorTimeout.restart()
+    }
+    onExited: {
+      if (root.monitorWanted) root.monitorError = strings.t("Voice test stopped. Check the audio output and try again.")
+      root.stopMonitor()
+    }
+  }
+  Timer { id: monitorTimeout; interval: 60000; onTriggered: root.stopMonitor() }
+  Component.onDestruction: stopMonitor()
 
   readonly property var sharedService: bar && bar.shell && typeof bar.shell.serviceFor === "function"
     ? bar.shell.serviceFor(moduleName) : null
@@ -42,10 +84,11 @@ Panel {
     armMeterHold()
   }
   readonly property string afterHoldKey: (service.afterNodeName || "") + ":" + (service.afterNodeId || "")
-  onAfterHoldKeyChanged: armMeterHold()
+  onAfterHoldKeyChanged: { stopMonitor(); armMeterHold() }
   Component.onCompleted: pushSettings()
 
   readonly property var presets: [
+    { value: "dictation", label: strings.t("Dictation"), hint: strings.t("Preserves quiet syllables") },
     { value: "meeting", label: strings.t("Meeting"), hint: "Zoom, Meet, Teams" },
     { value: "podcast", label: strings.t("Recording"), hint: strings.t("OBS, recordings and interviews") },
     { value: "clean", label: "Natural", hint: strings.t("Ambient sound preserved") }
@@ -75,12 +118,11 @@ Panel {
     if (!service.running) return strings.t("Voice Filters · %1").replace("%1", service.statusText)
     return strings.t("Voice Filters · %1").replace("%1", strings.t(Model.presetLabel(service.preset)))
   }
-  readonly property var activePhrases: [
-    strings.t("Reducing noise"),
-    strings.t("Preserving your voice"),
-    strings.t("Cleaning up the microphone"),
-    strings.t("Reducing echo")
-  ]
+  readonly property var activePhrases: service.preset === "meeting"
+    ? [strings.t("Reducing echo"), strings.t("Preserving your voice")]
+    : service.engine === "clean"
+      ? [strings.t("Preserving your voice")]
+      : [strings.t("Reducing noise"), strings.t("Preserving your voice")]
   readonly property string heroPhraseText: {
     if (service.lastError !== "") return strings.t("Could not start")
     if (service.busyReason) return service.statusText
@@ -165,11 +207,12 @@ Panel {
   }
 
   function setEngine(value) {
+    if (service.preset === "clean" || service.preset === "dictation") return
     persistSettings({ engine: Model.normalizeEngine(value) })
   }
 
   function setEqCurve(value) {
-    if (service.preset === "clean") return
+    if (service.preset === "clean" || service.preset === "dictation") return
     var prefix = service.preset === "podcast" ? "podcastEq" : "meetingEq"
     var patch = {}
     patch[prefix] = Model.normalizeEqCurve(value, "neutral")
@@ -186,7 +229,7 @@ Panel {
   }
 
   function setEqTrimDb(band, value) {
-    if (service.preset === "clean") return
+    if (service.preset === "clean" || service.preset === "dictation") return
     var trim = Model.snapEqTrimDb(Model.snapEqBandDb(service.eqCurve || "neutral", band, value) - eqCurveBase(band))
     var prefix = service.preset === "podcast" ? "podcastEq" : "meetingEq"
     var key = prefix + "BodyDb"
@@ -356,11 +399,7 @@ Panel {
   }
 
   function ensureCursor() {
-    if (focusSection === "presets") {
-      for (var i = 0; i < presets.length; i++) {
-        if (presets[i].value === service.preset) { presetIndex = i; break }
-      }
-    }
+    presetIndex = Math.max(0, Math.min(presets.length - 1, presetIndex))
     if (displaySources.length === 0) {
       if (focusSection === "sources") focusSection = "presets"
       sourceIndex = 0
@@ -380,14 +419,22 @@ Panel {
     if (tuneOpen) return
     cursorActive = true
     ensureCursor()
-    if (dy === 0) return
-    var sections = ["header", "presets", "sources"]
+    var sections = ["header", "presets", "sources", "test"]
     var idx = sections.indexOf(focusSection)
     if (idx < 0) idx = 0
-    if (focusSection === "presets" && dx !== 0) {
-      presetIndex = Math.max(0, Math.min(presets.length - 1, presetIndex + dx))
-      return
+    if (focusSection === "presets") {
+      var rowStart = Math.floor(presetIndex / 2) * 2
+      if (dx !== 0) {
+        presetIndex = Math.max(rowStart, Math.min(Math.min(rowStart + 1, presets.length - 1), presetIndex + dx))
+        return
+      }
+      var nextPreset = presetIndex + dy * 2
+      if (dy !== 0 && nextPreset >= 0 && nextPreset < presets.length) {
+        presetIndex = nextPreset
+        return
+      }
     }
+    if (dy === 0) return
     if (focusSection === "sources" && dy !== 0 && displaySources.length > 0) {
       var next = sourceIndex + dy
       if (next >= 0 && next < displaySources.length) {
@@ -397,6 +444,7 @@ Panel {
     }
     var ni = Math.max(0, Math.min(sections.length - 1, idx + dy))
     focusSection = sections[ni]
+    if (focusSection === "presets") presetIndex = dy > 0 ? 0 : Math.max(0, presets.length - 2)
     if (focusSection === "sources") sourceIndex = dy > 0 ? 0 : Math.max(0, displaySources.length - 1)
   }
 
@@ -406,6 +454,7 @@ Panel {
     if (focusSection === "header") toggleEnabled()
     else if (focusSection === "presets") choosePreset(presets[presetIndex].value)
     else if (focusSection === "sources" && displaySources[sourceIndex]) chooseSource(displaySources[sourceIndex].name)
+    else if (focusSection === "test") toggleMonitor()
   }
 
   implicitWidth: button.implicitWidth
@@ -413,6 +462,7 @@ Panel {
 
   onOpenedChanged: {
     if (!opened) {
+      stopMonitor()
       tuneOpen = false
       pendingTuneOpen = false
       if (cardRotation) cardRotation.angle = 0
@@ -533,10 +583,12 @@ Panel {
       onTabRequested: function(direction) { root.switchPanel(direction) }
       onTextKey: function(t) {
         if (root.tuneOpen) return
-        if (t === "m" || t === "M") root.choosePreset("meeting")
+        if (t === "d" || t === "D") root.choosePreset("dictation")
+        else if (t === "m" || t === "M") root.choosePreset("meeting")
         else if (t === "p" || t === "P") root.choosePreset("podcast")
         else if (t === "c" || t === "C") root.choosePreset("clean")
         else if (t === "o" || t === "O") root.toggleEnabled()
+        else if (t === "t" || t === "T") root.toggleMonitor()
         else if (t === "r" || t === "R") {
           if (typeof service.reload === "function") service.reload()
         }
@@ -702,8 +754,9 @@ Panel {
               }
             }
 
-            Row {
+            Grid {
               id: presetRow
+              columns: 2
               width: parent.width
               spacing: Style.space(6)
 
@@ -717,7 +770,7 @@ Panel {
                   required property var modelData
                   required property int index
                   readonly property bool isCurrent: service.preset === modelData.value
-                  width: Math.floor((parent.width - Style.space(6) * 2) / 3)
+                  width: Math.floor((parent.width - Style.space(6)) / 2)
                   implicitHeight: Style.space(36)
                   hasCursor: root.cursorActive && root.focusSection === "presets" && root.presetIndex === index
                   foreground: root.foreground
@@ -960,6 +1013,57 @@ Panel {
               }
             }
           }
+
+          PanelSeparator { foreground: root.foreground }
+          Column {
+            width: parent.width
+            spacing: Style.space(8)
+            CursorSurface {
+              width: parent.width
+              implicitHeight: Style.space(36)
+              enabled: root.monitorAvailable || root.monitoring
+              opacity: enabled ? 1 : 0.5
+              hasCursor: root.cursorActive && root.focusSection === "test"
+              foreground: root.foreground
+              Accessible.role: Accessible.Button
+              Accessible.name: testLabel.text
+              Accessible.onPressAction: root.toggleMonitor()
+              Rectangle {
+                anchors.fill: parent
+                radius: Style.cornerRadius
+                color: root.monitoring ? Util.alpha(root.foreground, 0.18) : "transparent"
+                border.width: 1
+                border.color: Util.alpha(root.foreground, 0.3)
+              }
+              Text {
+                id: testLabel
+                anchors.centerIn: parent
+                textFormat: Text.PlainText
+                text: root.monitoring ? strings.t("Stop voice test") : strings.t("Hear my voice")
+                color: root.foreground
+                font.family: root.fontFamily
+                font.pixelSize: Style.font.bodySmall
+              }
+              MouseArea {
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onEntered: { root.cursorActive = true; root.focusSection = "test" }
+                onClicked: root.toggleMonitor()
+              }
+            }
+            Text {
+              width: parent.width
+              textFormat: Text.PlainText
+              text: root.monitorError || (root.dictationCapturing
+                ? strings.t("Voice test unavailable during dictation.")
+                : strings.t("Use headphones. Stops when you close this panel, start dictation or after 60 seconds. Shortcut: T."))
+              color: root.monitorError ? root.urgent : root.dim
+              font.family: root.fontFamily
+              font.pixelSize: Style.font.caption
+              wrapMode: Text.WordWrap
+            }
+          }
         }
       }
 
@@ -1038,6 +1142,8 @@ Panel {
 
             Row {
               id: engineRow
+              enabled: service.preset !== "clean" && service.preset !== "dictation"
+              opacity: enabled ? 1 : 0.5
               width: parent.width
               spacing: Style.space(6)
 
@@ -1057,7 +1163,7 @@ Panel {
                   readonly property bool isCurrent: service.engineSetting === modelData.value
                   width: Math.floor((parent.width - Style.space(6) * 2) / 3)
                   implicitHeight: Style.space(32)
-                  hasCursor: root.cursorActive && root.focusSection === "engine" && root.engineIndex === index
+                  hasCursor: engineRow.enabled && root.cursorActive && root.focusSection === "engine" && root.engineIndex === index
                   foreground: root.foreground
                   opacity: isCurrent && service.busyReason === "engine" ? 0.55 : 1
                   Behavior on opacity { NumberAnimation { duration: 120 } }
@@ -1172,7 +1278,7 @@ Panel {
 
               PanelSectionHeader {
                 id: voiceDisabled
-                visible: service.preset === "clean"
+                visible: (service.preset === "clean" || service.preset === "dictation")
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
                 text: strings.t("OFF")
@@ -1184,7 +1290,7 @@ Panel {
             Column {
               width: parent.width
               spacing: Style.space(8)
-              enabled: service.preset !== "clean"
+              enabled: (service.preset !== "clean" && service.preset !== "dictation")
               opacity: enabled ? 1 : 0.5
 
               Row {
@@ -1194,7 +1300,7 @@ Panel {
 
                 HoverHandler {
                   onHoveredChanged: {
-                    if (service.preset === "clean") return
+                    if (service.preset === "clean" || service.preset === "dictation") return
                     root.setChipHover("voice", hovered)
                   }
                 }
@@ -1211,7 +1317,7 @@ Panel {
                     required property int index
                     width: Math.floor((parent.width - Style.space(6) * 3) / 4)
                     implicitHeight: Style.space(32)
-                    hasCursor: service.preset !== "clean" && root.cursorActive && root.focusSection === "voice" && root.eqIndex === index
+                    hasCursor: (service.preset !== "clean" && service.preset !== "dictation") && root.cursorActive && root.focusSection === "voice" && root.eqIndex === index
                     foreground: root.foreground
                     MouseArea {
                       id: eqHit
@@ -1219,7 +1325,7 @@ Panel {
                       hoverEnabled: true
                       cursorShape: Qt.PointingHandCursor
                       onEntered: {
-                        if (service.preset === "clean") return
+                        if (service.preset === "clean" || service.preset === "dictation") return
                         root.cursorActive = true
                         root.focusSection = "voice"
                         root.eqIndex = index
