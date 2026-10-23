@@ -81,5 +81,13 @@
   "Voice Filters · off": "Filtros de voz · desligados",
   "Voice levels": "Níveis de voz",
   "Voice tone": "Timbre da voz",
-  "Warm": "Aveludado"
+  "Warm": "Aveludado",
+  "Dictation": "Ditado",
+  "Preserves quiet syllables": "Preserva sílabas baixas",
+  "Preserves quiet syllables; no noise gate or neural suppression": "Preserva sílabas baixas; sem corte de voz nem supressão neural",
+  "Hear my voice": "Ouvir minha voz",
+  "Stop voice test": "Parar teste de voz",
+  "Voice test unavailable during dictation.": "Teste indisponível durante o ditado.",
+  "Voice test stopped. Check the audio output and try again.": "O teste parou. Confira a saída de áudio e tente novamente.",
+  "Use headphones. Stops when you close this panel, start dictation or after 60 seconds. Shortcut: T.": "Use fones. Encerra ao fechar o painel, iniciar o ditado ou após 60 segundos. Atalho: T."
 }

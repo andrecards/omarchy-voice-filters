@@ -1,7 +1,17 @@
 var NODE_NAME = "voicefilters"
 var CAPTURE_NAME = "voicefilters.capture"
 var NODE_DESCRIPTION = "Voice Filters"
-var PRESETS = ["meeting", "podcast", "clean"]
+
+function monitorCommand(sink) {
+  // Retorno separado: não altera fontes padrão nem a cadeia de transcrição.
+  if (!sink || /^voicefilters(?:\.|$)/.test(sink)) return []
+  return ["pw-loopback", "--name", "voicefilters.preview", "--channels", "1",
+    "--channel-map", "MONO", "--latency", "40", "--capture", NODE_NAME,
+    "--playback", sink,
+    "--capture-props", JSON.stringify({"node.name": "voicefilters.preview.capture", "node.dont-reconnect": true}),
+    "--playback-props", JSON.stringify({"node.name": "voicefilters.preview.playback", "node.dont-reconnect": true})]
+}
+var PRESETS = ["dictation", "meeting", "podcast", "clean"]
 var QUALITIES = ["good", "better", "best"]
 var ENGINES = ["auto", "rnnoise", "deepfilter"]
 var EQ_CURVES = ["neutral", "warm", "clear", "bright"]
@@ -222,6 +232,7 @@ function restoreCaptureName(pinnedName, previousName, sources) {
 
 function presetLabel(preset) {
   var value = normalizePreset(preset)
+  if (value === "dictation") return "Dictation"
   if (value === "podcast") return "Recording"
   if (value === "clean") return "Natural"
   return "Meeting"
@@ -229,6 +240,7 @@ function presetLabel(preset) {
 
 function presetHint(preset) {
   var value = normalizePreset(preset)
+  if (value === "dictation") return "Preserves quiet syllables; no noise gate or neural suppression"
   if (value === "podcast") return "Noise reduction and moderate compression for recording"
   if (value === "clean") return "High-pass filter; preserves ambience and music"
   return "Echo cancellation and noise reduction for calls"
@@ -242,7 +254,7 @@ function normalizeEngine(value) {
 
 function engineForPreset(preset, haveRnnoise, haveDeepfilter) {
   var value = normalizePreset(preset)
-  if (value === "clean") return "clean"
+  if (value === "clean" || value === "dictation") return "clean"
   if (value === "podcast" && haveDeepfilter) return "deepfilter"
   if (haveRnnoise) return "rnnoise"
   return "clean"
@@ -250,7 +262,7 @@ function engineForPreset(preset, haveRnnoise, haveDeepfilter) {
 
 function resolveEngine(preset, engineSetting, haveRnnoise, haveDeepfilter) {
   var kind = normalizePreset(preset)
-  if (kind === "clean") return "clean"
+  if (kind === "clean" || kind === "dictation") return "clean"
   var want = normalizeEngine(engineSetting)
   if (want === "rnnoise" || want === "deepfilter") return want
   return engineForPreset(kind, haveRnnoise, haveDeepfilter)
@@ -344,7 +356,7 @@ function eqCurveParams(curve) {
 }
 
 function eqCurveForPreset(preset, values) {
-  if (normalizePreset(preset) === "clean") return ""
+  if (["clean", "dictation"].indexOf(normalizePreset(preset)) >= 0) return ""
   var src = values || {}
   if (normalizePreset(preset) === "podcast") return normalizeEqCurve(src.podcastEq, "neutral")
   return normalizeEqCurve(src.meetingEq, "warm")
@@ -353,7 +365,7 @@ function eqCurveForPreset(preset, values) {
 function eqTrimForPreset(preset, values) {
   var src = values || {}
   var kind = normalizePreset(preset)
-  if (kind === "clean") return { body: 0, pres: 0, air: 0 }
+  if (kind === "clean" || kind === "dictation") return { body: 0, pres: 0, air: 0 }
   if (kind === "podcast") {
     return {
       body: clampEqTrimDb(src.podcastEqBodyDb),
@@ -440,7 +452,7 @@ function outputGainDbForPreset(preset, values) {
   var kind = normalizePreset(preset)
   var first = "meetingOutputGainDb"
   if (kind === "podcast") first = "podcastOutputGainDb"
-  else if (kind === "clean") first = "cleanOutputGainDb"
+  else if (kind === "clean" || kind === "dictation") first = "cleanOutputGainDb"
   return gainDbFromKeys(values || {}, ["outputGainDb", first, "meetingOutputGainDb", "podcastOutputGainDb", "cleanOutputGainDb"])
 }
 
@@ -448,7 +460,7 @@ function captureGainDbForPreset(preset, values) {
   var kind = normalizePreset(preset)
   var first = "meetingCaptureGainDb"
   if (kind === "podcast") first = "podcastCaptureGainDb"
-  else if (kind === "clean") first = "cleanCaptureGainDb"
+  else if (kind === "clean" || kind === "dictation") first = "cleanCaptureGainDb"
   return gainDbFromKeys(values || {}, ["captureGainDb", first, "meetingCaptureGainDb", "podcastCaptureGainDb", "cleanCaptureGainDb"])
 }
 
@@ -504,7 +516,7 @@ function setupGuide(engine, haveRnnoise, haveDeepfilter, preset) {
     }
   }
 
-  if (kind === "clean") return none
+  if (kind === "clean" || kind === "dictation") return none
   if (want === "rnnoise") return haveRnnoise ? none : rnnoiseRow()
   if (want === "deepfilter") return haveDeepfilter ? none : dfnRow()
   if (kind === "podcast" && haveDeepfilter) return none
@@ -536,6 +548,7 @@ function statusText(state, tr) {
 if (typeof module !== "undefined") {
   module.exports = {
     NODE_NAME: NODE_NAME,
+    monitorCommand: monitorCommand,
     CAPTURE_NAME: CAPTURE_NAME,
     NODE_DESCRIPTION: NODE_DESCRIPTION,
     PRESETS: PRESETS,
